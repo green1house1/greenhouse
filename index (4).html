@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Greenhouse</title>
+<style>
+  :root {
+    --bg: #f3f6f1;
+    --card: #ffffff;
+    --text: #1d2a1f;
+    --muted: #5e6e61;
+    --line: #d5dfd2;
+    --green: #2f7d3b;
+    --off: #b9c4b7;
+    --warn: #a4471f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #151b16;
+      --card: #1f2821;
+      --text: #e6efe5;
+      --muted: #9aab9d;
+      --line: #324036;
+      --green: #5cb86a;
+      --off: #4a5a4d;
+      --warn: #e59a73;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+  }
+  header { background: var(--green); color: #fff; padding: 20px 16px; }
+  header h1 { margin: 0; font-size: 1.5rem; }
+  header p { margin: 4px 0 0; opacity: 0.9; font-size: 0.95rem; }
+  main { max-width: 720px; margin: 0 auto; padding: 16px; }
+  h2 { font-size: 1.1rem; margin: 24px 0 10px; }
+  .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .row + .row { margin-top: 10px; }
+
+  .status { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--off); margin-right: 8px; }
+  .dot.ok { background: var(--green); }
+  .linkbtn { background: none; border: none; color: var(--green); font: inherit; cursor: pointer; text-decoration: underline; padding: 4px; }
+
+  form label { display: block; font-size: 0.9rem; color: var(--muted); margin-top: 10px; }
+  form input[type="text"], form input[type="password"] {
+    width: 100%; padding: 10px; margin-top: 4px; font: inherit;
+    color: var(--text); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 8px;
+  }
+  .remember { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 0.9rem; color: var(--muted); }
+  .primary {
+    margin-top: 14px; padding: 10px 18px; font: inherit; font-weight: 600;
+    background: var(--green); color: #fff; border: none; border-radius: 8px; cursor: pointer;
+  }
+  .error { color: var(--warn); margin: 10px 0 0; font-size: 0.95rem; }
+
+  .switch {
+    width: 52px; height: 30px; border-radius: 15px; border: none;
+    background: var(--off); position: relative; cursor: pointer; flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .switch::after {
+    content: ""; position: absolute; top: 3px; left: 3px;
+    width: 24px; height: 24px; border-radius: 50%; background: #fff;
+    transition: transform 0.15s;
+  }
+  .switch[aria-checked="true"] { background: var(--green); }
+  .switch[aria-checked="true"]::after { transform: translateX(22px); }
+  .switch:disabled { cursor: not-allowed; opacity: 0.55; }
+  .switch:focus-visible, .primary:focus-visible, .linkbtn:focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
+
+  .soon { opacity: 0.65; border-style: dashed; }
+  .badge { font-size: 0.8rem; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; white-space: nowrap; }
+  .hidden { display: none; }
+  @media (prefers-reduced-motion: reduce) { .switch, .switch::after { transition: none; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Greenhouse</h1>
+  <p>Control from anywhere</p>
+</header>
+
+<main>
+  <div class="card status">
+    <div><span class="dot" id="dot"></span><span id="statusText">Sign in to connect.</span></div>
+    <button class="linkbtn hidden" id="signOut" type="button">Sign out</button>
+  </div>
+
+  <div class="card hidden" id="loginCard" style="margin-top:12px">
+    <form id="loginForm">
+      <label for="user">Username</label>
+      <input type="text" id="user" autocomplete="username" autocapitalize="none" required>
+      <label for="pass">Password</label>
+      <input type="password" id="pass" autocomplete="current-password" required>
+      <div class="remember">
+        <input type="checkbox" id="remember" checked>
+        <label for="remember" style="margin:0">Keep me signed in on this device</label>
+      </div>
+      <button class="primary" type="submit">Sign in</button>
+      <p class="error hidden" id="loginError"></p>
+    </form>
+  </div>
+
+  <h2>Controls</h2>
+  <div class="card">
+    <div class="row"><span>Fan</span><button class="switch" id="fanSwitch" role="switch" aria-checked="false" aria-label="Fan" disabled></button></div>
+    <div class="row"><span>Grow light</span><span class="badge">Coming soon</span></div>
+    <div class="row"><span>Watering</span><span class="badge">Coming soon</span></div>
+  </div>
+
+  <h2>Coming soon</h2>
+  <div class="grid">
+    <div class="card soon"><div class="row"><span>Live sensor readings</span><span class="badge">Coming soon</span></div></div>
+    <div class="card soon"><div class="row"><span>Schedules</span><span class="badge">Coming soon</span></div></div>
+    <div class="card soon"><div class="row"><span>History graphs</span><span class="badge">Coming soon</span></div></div>
+    <div class="card soon"><div class="row"><span>Alerts to your phone</span><span class="badge">Coming soon</span></div></div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js"></script>
+<script>
+  var BROKER_URL = "wss://e721081f.ala.asia-southeast1.emqxsl.com:8084/mqtt";
+  var T_SET = "greenhouse/fan/set";
+  var T_STATE = "greenhouse/fan/state";
+  var T_STATUS = "greenhouse/status";
+
+  var client = null;
+  var brokerUp = false;
+  var greenhouseOnline = false;
+  var fanOn = false;
+  var signedIn = false;
+  var connecting = false;
+
+  var el = {
+    dot: document.getElementById("dot"),
+    statusText: document.getElementById("statusText"),
+    signOut: document.getElementById("signOut"),
+    loginCard: document.getElementById("loginCard"),
+    loginForm: document.getElementById("loginForm"),
+    loginError: document.getElementById("loginError"),
+    user: document.getElementById("user"),
+    pass: document.getElementById("pass"),
+    remember: document.getElementById("remember"),
+    fan: document.getElementById("fanSwitch")
+  };
+
+  function saveLogin(u, p) {
+    try { localStorage.setItem("gh_user", u); localStorage.setItem("gh_pass", p); } catch (e) {}
+  }
+  function clearLogin() {
+    try { localStorage.removeItem("gh_user"); localStorage.removeItem("gh_pass"); } catch (e) {}
+  }
+  function loadLogin() {
+    try {
+      var u = localStorage.getItem("gh_user");
+      var p = localStorage.getItem("gh_pass");
+      if (u && p) return { user: u, pass: p };
+    } catch (e) {}
+    return null;
+  }
+
+  function render() {
+    el.loginCard.classList.toggle("hidden", signedIn || connecting);
+    el.signOut.classList.toggle("hidden", !signedIn && !connecting);
+
+    var text = "Sign in to connect.";
+    var ok = false;
+    if (connecting) {
+      text = "Connecting…";
+    } else if (signedIn && brokerUp && greenhouseOnline) {
+      text = "Greenhouse controller is online.";
+      ok = true;
+    } else if (signedIn && brokerUp) {
+      text = "Connected, but the greenhouse controller is offline.";
+    } else if (signedIn) {
+      text = "Connection lost. Trying again…";
+    }
+    el.statusText.textContent = text;
+    el.dot.classList.toggle("ok", ok);
+
+    el.fan.setAttribute("aria-checked", fanOn ? "true" : "false");
+    el.fan.disabled = !(brokerUp && greenhouseOnline);
+  }
+
+  function showError(msg) {
+    el.loginError.textContent = msg;
+    el.loginError.classList.remove("hidden");
+  }
+
+  function disconnect() {
+    if (client) { client.end(true); client = null; }
+    brokerUp = false;
+    greenhouseOnline = false;
+    signedIn = false;
+    connecting = false;
+  }
+
+  function signIn(user, pass, remember) {
+    disconnect();
+    el.loginError.classList.add("hidden");
+    connecting = true;
+    render();
+
+    client = mqtt.connect(BROKER_URL, {
+      username: user,
+      password: pass,
+      clientId: "web-" + Math.random().toString(16).slice(2, 10),
+      reconnectPeriod: 3000,
+      connectTimeout: 8000
+    });
+
+    client.on("connect", function () {
+      connecting = false;
+      signedIn = true;
+      brokerUp = true;
+      if (remember) saveLogin(user, pass);
+      client.subscribe([T_STATUS, T_STATE]);
+      render();
+    });
+
+    client.on("message", function (topic, payload) {
+      var msg = payload.toString();
+      if (topic === T_STATUS) greenhouseOnline = (msg === "online");
+      if (topic === T_STATE) fanOn = (msg === "on");
+      render();
+    });
+
+    client.on("close", function () {
+      brokerUp = false;
+      greenhouseOnline = false;
+      render();
+    });
+
+    client.on("error", function (err) {
+      var code = err && err.code;
+      if (code === 4 || code === 5 || code === 134 || code === 135) {
+        disconnect();
+        clearLogin();
+        showError("Wrong username or password.");
+      } else if (connecting) {
+        disconnect();
+        showError("Can’t reach the broker. Check your internet and try again.");
+      }
+      render();
+    });
+  }
+
+  el.loginForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    signIn(el.user.value.trim(), el.pass.value, el.remember.checked);
+  });
+
+  el.signOut.addEventListener("click", function () {
+    disconnect();
+    clearLogin();
+    fanOn = false;
+    el.pass.value = "";
+    render();
+  });
+
+  el.fan.addEventListener("click", function () {
+    if (!client || !brokerUp || !greenhouseOnline) return;
+    client.publish(T_SET, fanOn ? "off" : "on");
+  });
+
+  var saved = loadLogin();
+  if (saved) {
+    el.user.value = saved.user;
+    signIn(saved.user, saved.pass, true);
+  } else {
+    render();
+  }
+</script>
+</body>
+</html>
